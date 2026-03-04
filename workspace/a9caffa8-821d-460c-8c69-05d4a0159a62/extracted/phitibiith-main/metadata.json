@@ -1,0 +1,7 @@
+{
+  "name": "KawaiiBooth AI",
+  "description": "A professional, cute photo booth app with AI-generated stickers and custom templates.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apkocalypse — Convert Web Project to APK</title>
+  <meta name="description"
+    content="Upload your web project and automatically build an Android APK. Supports React, Vue, Angular, Next.js, Laravel, and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none">
+            <rect x="2" y="2" width="36" height="36" rx="8" stroke="currentColor" stroke-width="3" />
+            <path d="M12 20L18 26L28 14" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div>
+          <h1>Apkocalypse</h1>
+          <p class="logo-sub">Web to APK Automation</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" onclick="showBuilds()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          History
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <!-- Step Indicator -->
+    <div class="steps">
+      <div class="step active" id="step-1-indicator">
+        <div class="step-number">1</div>
+        <span>Upload</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step-2-indicator">
+        <div class="step-number">2</div>
+        <span>Configure</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step-3-indicator">
+        <div class="step-number">3</div>
+        <span>Build</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="step-4-indicator">
+        <div class="step-number">4</div>
+        <span>Download</span>
+      </div>
+    </div>
+
+    <!-- ===== STEP 1: Upload ===== -->
+    <section id="step-upload" class="step-content active">
+      <div class="card upload-card">
+        <div class="card-header">
+          <h2>📦 Upload Project</h2>
+          <p>Drag & drop folder project kamu (ZIP format)</p>
+        </div>
+
+        <div class="upload-zone" id="drop-zone">
+          <div class="upload-icon">
+            <svg viewBox="0 0 80 80" fill="none" stroke="currentColor">
+              <circle cx="40" cy="40" r="38" stroke-width="2" stroke-dasharray="8 4" opacity="0.3" />
+              <path d="M28 42L40 30L52 42M40 30V56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <p class="upload-text">Drop file .zip disini</p>
+          <p class="upload-sub">atau klik untuk pilih file</p>
+          <input type="file" id="file-input" accept=".zip" hidden>
+          <p class="upload-hint">Mendukung: React, Vue, Angular, Next.js, Svelte, Laravel, Express, Static HTML</p>
+        </div>
+
+        <div class="upload-progress" id="upload-progress" style="display:none;">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="progress-text" id="progress-text">Uploading...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== STEP 2: Configure ===== -->
+    <section id="step-configure" class="step-content">
+      <div class="two-column">
+        <!-- Detection Result -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🔍 Hasil Deteksi</h2>
+          </div>
+          <div class="detection-result" id="detection-result">
+            <div class="detection-item">
+              <span class="detection-label">Framework</span>
+              <span class="detection-value badge" id="detected-framework">-</span>
+            </div>
+            <div class="detection-item">
+              <span class="detection-label">Type</span>
+              <span class="detection-value" id="detected-type">-</span>
+            </div>
+            <div class="detection-item">
+              <span class="detection-label">Build Command</span>
+              <code class="detection-value code" id="detected-build-cmd">-</code>
+            </div>
+            <div class="detection-item">
+              <span class="detection-label">Output Dir</span>
+              <code class="detection-value code" id="detected-output-dir">-</code>
+            </div>
+            <div class="detection-item" id="db-detection" style="display:none;">
+              <span class="detection-label">Database</span>
+              <span class="detection-value badge badge-warning" id="detected-db">-</span>
+            </div>
+          </div>
+
+          <!-- File Tree -->
+          <div class="card-section">
+            <h3>📂 Project Files</h3>
+            <div class="file-tree" id="file-tree"></div>
+          </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="card">
+          <div class="card-header">
+            <h2>⚙️ Konfigurasi</h2>
+          </div>
+
+          <div class="config-form">
+            <div class="form-group">
+              <label for="app-name">Nama Aplikasi</label>
+              <input type="text" id="app-name" class="form-input" placeholder="My App" value="My App">
+            </div>
+
+            <div class="form-group">
+              <label for="app-id">App ID (package name)</label>
+              <input type="text" id="app-id" class="form-input" placeholder="com.example.myapp"
+                value="com.apkbuilder.app">
+            </div>
+
+            <!-- App Icon Upload -->
+            <div class="divider"></div>
+            <h3>🎨 App Logo / Icon</h3>
+            <p class="form-hint">Upload gambar (PNG/JPG) untuk icon aplikasi. Kami akan generate semua ukuran otomatis.
+            </p>
+
+            <div class="icon-upload-container">
+              <div class="icon-preview" id="icon-preview">
+                <span class="icon-placeholder">📱</span>
+                <img id="icon-img" src="" style="display:none;" alt="App Icon">
+              </div>
+              <div class="icon-upload-actions">
+                <input type="file" id="icon-input" accept=".png,.jpg,.jpeg,.webp,.svg" hidden>
+                <button class="btn btn-secondary" onclick="document.getElementById('icon-input').click()">Pilih
+                  Gambar</button>
+                <span id="icon-filename" class="file-name-hint">Belum ada file dipilih</span>
+              </div>
+            </div>
+
+            <!-- Permissions Config -->
+            <div class="divider"></div>
+            <h3>🔑 Android Permissions</h3>
+            <p class="form-hint">Pilih fitur device apa saja yang dibutuhkan oleh aplikasi kamu.</p>
+
+            <div class="permissions-grid" id="permissions-grid">
+              <!-- Permissions akan di-render via JS -->
+              <div class="loading-text">Loading permissions...</div>
+            </div>
+
+            <!-- Database Config (hidden by default) -->
+            <div id="db-config" style="display:none;">
+              <div class="divider"></div>
+              <h3>💾 Database Configuration</h3>
+              <p class="form-hint">Project ini menggunakan database. Konfigurasi koneksi untuk mobile app.</p>
+
+              <div class="form-group">
+                <label>Mode Database</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="db-mode" value="online" checked>
+                    <span>🌐 Online (API Server)</span>
+                    <small>App terhubung ke server backend via API</small>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="db-mode" value="offline">
+                    <span>📴 Offline (Local Storage)</span>
+                    <small>Data disimpan lokal di device (SQLite/IndexedDB)</small>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group" id="api-url-group">
+                <label for="api-url">API Server URL</label>
+                <input type="url" id="api-url" class="form-input" placeholder="https://api.yourserver.com">
+                <small class="form-hint">URL server backend yang bisa diakses dari internet</small>
+              </div>
+
+              <div id="db-fields" style="display:none;">
+                <div class="form-group">
+                  <label for="db-host">DB Host</label>
+                  <input type="text" id="db-host" class="form-input" placeholder="localhost">
+                </div>
+                <div class="form-group">
+                  <label for="db-port">DB Port</label>
+                  <input type="text" id="db-port" class="form-input" placeholder="3306">
+                </div>
+                <div class="form-group">
+                  <label for="db-name">DB Name</label>
+                  <input type="text" id="db-name" class="form-input" placeholder="my_database">
+                </div>
+                <div class="form-group">
+                  <label for="db-user">DB Username</label>
+                  <input type="text" id="db-user" class="form-input" placeholder="root">
+                </div>
+                <div class="form-group">
+                  <label for="db-pass">DB Password</label>
+                  <input type="password" id="db-pass" class="form-input" placeholder="••••••">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn btn-secondary" onclick="goToStep(1)">← Kembali</button>
+            <button class="btn btn-primary btn-glow" onclick="startBuild()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              Build APK
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== STEP 3: Build ===== -->
+    <section id="step-build" class="step-content">
+      <div class="card build-card">
+        <div class="card-header">
+          <div>
+            <h2>🔨 Build Process</h2>
+            <p id="build-phase">Initializing...</p>
+          </div>
+          <div class="build-status" id="build-status-badge">
+            <div class="status-dot pulsing"></div>
+            <span>Building</span>
+          </div>
+        </div>
+
+        <!-- Build Progress -->
+        <div class="build-progress">
+          <div class="build-stages">
+            <div class="build-stage" id="stage-install">
+              <div class="stage-icon">📥</div>
+              <span>Install Dependencies</span>
+              <div class="stage-status" id="stage-install-status">waiting</div>
+            </div>
+            <div class="build-stage" id="stage-build">
+              <div class="stage-icon">🔨</div>
+              <span>Build Project</span>
+              <div class="stage-status" id="stage-build-status">waiting</div>
+            </div>
+            <div class="build-stage" id="stage-capacitor">
+              <div class="stage-icon">📱</div>
+              <span>Setup Capacitor</span>
+              <div class="stage-status" id="stage-capacitor-status">waiting</div>
+            </div>
+            <div class="build-stage" id="stage-apk">
+              <div class="stage-icon">🤖</div>
+              <span>Build APK</span>
+              <div class="stage-status" id="stage-apk-status">waiting</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="terminal-title">Build Terminal</span>
+            <button class="btn btn-ghost btn-sm" onclick="clearTerminal()">Clear</button>
+          </div>
+          <div class="terminal-body" id="terminal-body">
+            <div class="terminal-line info">
+              <span class="terminal-time"></span>
+              <span>Waiting for build to start...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== STEP 4: Download ===== -->
+    <section id="step-download" class="step-content">
+      <div class="card download-card">
+        <div class="success-animation" id="success-animation">
+          <svg viewBox="0 0 120 120" class="success-check">
+            <circle cx="60" cy="60" r="54" stroke="#22c55e" stroke-width="4" fill="none" class="circle-anim" />
+            <path d="M35 62L52 78L85 42" stroke="#22c55e" stroke-width="5" fill="none" stroke-linecap="round"
+              stroke-linejoin="round" class="check-anim" />
+          </svg>
+          <h2>🎉 Build Selesai!</h2>
+          <p>APK kamu sudah siap didownload</p>
+        </div>
+
+        <div class="download-info" id="download-info" style="display:none;">
+          <div class="download-file">
+            <div class="file-icon">📱</div>
+            <div class="file-details">
+              <span class="file-name" id="download-filename">app.apk</span>
+              <span class="file-size" id="download-size">-</span>
+            </div>
+            <button class="btn btn-primary btn-lg btn-glow" id="download-btn" onclick="downloadApk()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              </svg>
+              Download APK
+            </button>
+          </div>
+        </div>
+
+        <div class="download-failed" id="download-failed" style="display:none;">
+          <div class="failed-icon">⚠️</div>
+          <h3>Build selesai tanpa APK</h3>
+          <p id="failed-message">Android SDK belum terinstall. Capacitor project sudah disiapkan dan bisa di-build
+            manual.</p>
+          <div class="failed-tips">
+            <h4>Untuk build APK manual:</h4>
+            <code>cd workspace/[project-id]/capacitor_build/android && ./gradlew assembleDebug</code>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn btn-secondary" onclick="resetApp()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+            </svg>
+            Build Lagi
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Builds History Modal -->
+  <div class="modal-overlay" id="builds-modal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📋 Build History</h2>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="builds-list">
+        <p class="empty-state">Belum ada build history</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+
+</html>

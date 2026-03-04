@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Catet aja udah</string>
+    <string name="title_activity_main">Catet aja udah</string>
+    <string name="package_name">com.apkbuilder.app</string>
+    <string name="custom_url_scheme">com.apkbuilder.app</string>
+</resources>
